@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Domain 1.0: Data Movement - Flashcards</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+        
+        .btn-primary {
+            background: white;
+            color: #667eea;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+        }
+        
+        .btn-secondary {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 2px solid white;
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        .category-filter {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .category-btn {
+            padding: 8px 16px;
+            border: 2px solid white;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9em;
+        }
+        
+        .category-btn:hover,
+        .category-btn.active {
+            background: white;
+            color: #667eea;
+        }
+        
+        .flashcard-container {
+            perspective: 1000px;
+            margin-bottom: 30px;
+        }
+        
+        .flashcard {
+            position: relative;
+            width: 100%;
+            min-height: 400px;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            cursor: pointer;
+        }
+        
+        .flashcard.flipped {
+            transform: rotateY(180deg);
+        }
+        
+        .card-face {
+            position: absolute;
+            width: 100%;
+            min-height: 400px;
+            backface-visibility: hidden;
+            border-radius: 15px;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        .card-front {
+            background: white;
+            color: #2c3e50;
+        }
+        
+        .card-back {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transform: rotateY(180deg);
+        }
+        
+        .card-category {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: #667eea;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: bold;
+        }
+        
+        .card-back .card-category {
+            background: white;
+            color: #667eea;
+        }
+        
+        .card-content {
+            text-align: center;
+            width: 100%;
+        }
+        
+        .card-front .card-content h2 {
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+        
+        .card-back .card-content {
+            text-align: left;
+        }
+        
+        .card-back .card-content h3 {
+            font-size: 1.5em;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .card-back .card-content p {
+            font-size: 1.1em;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        
+        .code-example {
+            background: rgba(0,0,0,0.2);
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95em;
+            margin-top: 15px;
+            text-align: left;
+            overflow-x: auto;
+        }
+        
+        .card-front .code-example {
+            background: #f8f9fa;
+            color: #2c3e50;
+        }
+        
+        .progress {
+            text-align: center;
+            color: white;
+            font-size: 1.2em;
+            margin-bottom: 20px;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 5px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: white;
+            transition: width 0.3s ease;
+        }
+        
+        .hint {
+            text-align: center;
+            color: white;
+            margin-top: 20px;
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            background: rgba(255,255,255,0.2);
+            padding: 20px;
+            border-radius: 15px;
+            color: white;
+            margin-top: 20px;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            display: block;
+        }
+        
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+        
+        .highlight {
+            background: rgba(255,255,255,0.3);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        
+        ul {
+            text-align: left;
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+        
+        ul li {
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📚 Domain 1.0: Data Movement</h1>
+            <p>Snowflake Data Engineer Certification Flashcards</p>
+        </div>
+        
+        <div class="progress">
+            <span id="current-card">1</span> / <span id="total-cards">85</span>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+            </div>
+        </div>
+        
+        <div class="category-filter">
+            <button class="category-btn active" onclick="filterCategory('all')">All Topics</button>
+            <button class="category-btn" onclick="filterCategory('Loading')">Data Loading</button>
+            <button class="category-btn" onclick="filterCategory('File Formats')">File Formats</button>
+            <button class="category-btn" onclick="filterCategory('Snowpipe')">Snowpipe</button>
+            <button class="category-btn" onclick="filterCategory('Streams')">Streams</button>
+            <button class="category-btn" onclick="filterCategory('Tasks')">Tasks</button>
+            <button class="category-btn" onclick="filterCategory('Connectors')">Connectors</button>
+            <button class="category-btn" onclick="filterCategory('External Tables')">External Tables</button>
+        </div>
+        
+        <div class="flashcard-container">
+            <div class="flashcard" id="flashcard" onclick="flipCard()">
+                <div class="card-face card-front">
+                    <div class="card-category" id="category-front">Loading</div>
+                    <div class="card-content" id="front-content">
+                        <h2>Click to start!</h2>
+                    </div>
+                </div>
+                <div class="card-face card-back">
+                    <div class="card-category" id="category-back">Loading</div>
+                    <div class="card-content" id="back-content">
+                        <h3>Answer</h3>
+                        <p>Click "Next" to begin studying</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="hint">💡 Click card to flip | Use buttons to navigate</div>
+        
+        <div class="controls">
+            <button class="btn btn-secondary" onclick="previousCard()">⬅️ Previous</button>
+            <button class="btn btn-primary" onclick="shuffleCards()">🔀 Shuffle</button>
+            <button class="btn btn-primary" onclick="nextCard()">Next ➡️</button>
+        </div>
+        
+        <div class="stats">
+            <div class="stat-item">
+                <span class="stat-number" id="cards-reviewed">0</span>
+                <span class="stat-label">Cards Reviewed</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number" id="cards-remaining">85</span>
+                <span class="stat-label">Remaining</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number" id="completion">0%</span>
+                <span class="stat-label">Complete</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const flashcards = [
+            // DATA LOADING FUNDAMENTALS
+            {
+                category: "Loading",
+                question: "What is the optimal file size range for loading data into Snowflake?",
+                answer: "<p><span class='highlight'>100-250 MB compressed</span></p><p><strong>Why?</strong> This size allows for:</p><ul><li>Efficient parallelization</li><li>Optimal micro-partition creation</li><li>Good balance between throughput and overhead</li></ul><p>⚠️ Avoid: Files < 10 MB (too much overhead) or > 5 GB (poor parallelization)</p>"
+            },
+            {
+                category: "Loading",
+                question: "What does VALIDATION_MODE = 'RETURN_ERRORS' do?",
+                answer: "<p>Validates data <span class='highlight'>without loading</span> and returns:</p><ul><li>First error encountered per file</li><li>Error details (row, column, message)</li><li>No data is inserted into table</li></ul><div class='code-example'>COPY INTO table<br>FROM @stage<br>VALIDATION_MODE = 'RETURN_ERRORS';</div><p>Use RETURN_ALL_ERRORS to see every error (slower)</p>"
+            },
+            {
+                category: "Loading",
+                question: "Files in S3 are older than 64 days. What parameter reloads them without duplicates?",
+                answer: "<p><span class='highlight'>LOAD_UNCERTAIN_FILES = TRUE</span></p><p><strong>Why?</strong> Snowflake's load metadata expires after <strong>64 days</strong>.</p><ul><li>FORCE = TRUE: Reloads ALL files (causes duplicates)</li><li>LOAD_UNCERTAIN_FILES = TRUE: Only loads files with expired or no metadata</li></ul><div class='code-example'>COPY INTO table<br>FROM @stage<br>LOAD_UNCERTAIN_FILES = TRUE;</div>"
+            },
+            {
+                category: "Loading",
+                question: "What does PURGE = TRUE do in COPY INTO?",
+                answer: "<p><span class='highlight'>Automatically deletes source files after successful load</span></p><p><strong>Benefits:</strong></p><ul><li>Saves cloud storage costs</li><li>Prevents accidental reprocessing</li><li>Automatically cleans up stages</li></ul><p>⚠️ Use carefully! Files are permanently deleted.</p><div class='code-example'>COPY INTO table<br>FROM @stage<br>PURGE = TRUE;</div>"
+            },
+            {
+                category: "Loading",
+                question: "Compare ON_ERROR options: CONTINUE vs ABORT_STATEMENT",
+                answer: "<p><strong>ON_ERROR = 'CONTINUE':</strong></p><ul><li>Loads valid rows, skips bad rows</li><li>Logs errors in COPY_HISTORY</li><li>Use when: Data quality issues expected</li></ul><p><strong>ON_ERROR = 'ABORT_STATEMENT':</strong></p><ul><li>Stops entire load on first error</li><li>Nothing is loaded (transaction rolls back)</li><li>Use when: All-or-nothing required</li></ul><p>Also available: SKIP_FILE (skips entire file with errors)</p>"
+            },
+            
+            // FILE FORMATS
+            {
+                category: "File Formats",
+                question: "What parameter handles commas inside quoted CSV fields?",
+                answer: "<p><span class='highlight'>FIELD_OPTIONALLY_ENCLOSED_BY = '\"'</span></p><p>Example data:</p><div class='code-example'>\"Smith, John\",\"123 Main St, Apt 4\"</div><p>Without this parameter, Snowflake would split on the embedded commas!</p><div class='code-example'>CREATE FILE FORMAT csv_format<br>  TYPE = 'CSV'<br>  FIELD_OPTIONALLY_ENCLOSED_BY = '\"'<br>  FIELD_DELIMITER = ',';</div>"
+            },
+            {
+                category: "File Formats",
+                question: "What data type stores semi-structured data (JSON, XML, Avro, Parquet)?",
+                answer: "<p><span class='highlight'>VARIANT</span></p><p><strong>Features:</strong></p><ul><li>Stores up to 16 MB per value</li><li>Queryable with colon notation (data:field.nested)</li><li>Works with FLATTEN() for nested arrays</li><li>Automatic type inference</li></ul><div class='code-example'>CREATE TABLE events (<br>  event_id NUMBER,<br>  event_data VARIANT<br>);<br><br>SELECT event_data:user.name<br>FROM events;</div>"
+            },
+            {
+                category: "File Formats",
+                question: "What are the advantages of Parquet over CSV?",
+                answer: "<p><strong>Parquet advantages:</strong></p><ul><li><span class='highlight'>Column-based storage</span> (only read needed columns)</li><li>Built-in compression (smaller files)</li><li>Schema embedded in file</li><li>Type information preserved</li><li>Faster query performance</li></ul><p>CSV requires scanning entire row even if only 1 column is needed!</p>"
+            },
+            {
+                category: "File Formats",
+                question: "How do you query nested JSON values in a VARIANT column?",
+                answer: "<p><span class='highlight'>Colon notation: column:path.to.value</span></p><div class='code-example'>-- Simple access<br>SELECT data:user.name<br>FROM table;<br><br>-- Deep nesting<br>SELECT data:order.items[0].price<br>FROM table;<br><br>-- Flatten arrays<br>SELECT value:product<br>FROM table,<br>LATERAL FLATTEN(input => data:items);</div><p>Cast when needed: data:price::NUMBER</p>"
+            },
+            {
+                category: "File Formats",
+                question: "Which file format is NOT natively supported by Snowflake?",
+                answer: "<p><span class='highlight'>Excel (.xlsx)</span></p><p><strong>Supported formats:</strong></p><ul><li>✅ CSV, TSV</li><li>✅ JSON</li><li>✅ Avro</li><li>✅ ORC</li><li>✅ Parquet</li><li>✅ XML</li><li>❌ Excel (.xlsx) - must convert first</li></ul>"
+            },
+            
+            // SNOWPIPE & STREAMING
+            {
+                category: "Snowpipe",
+                question: "What's the key difference between Snowpipe and Snowpipe Streaming?",
+                answer: "<table style='width:100%; margin-top:10px; color:white;'><tr><th>Feature</th><th>Snowpipe</th><th>Snowpipe Streaming</th></tr><tr><td>Latency</td><td>1-2 minutes</td><td><strong>Sub-second</strong></td></tr><tr><td>Source</td><td>Files in stage</td><td>Application via SDK</td></tr><tr><td>Method</td><td>AUTO_INGEST or REST API</td><td>Ingest SDK</td></tr><tr><td>Use Case</td><td>File-based ETL</td><td>Real-time streaming</td></tr></table>"
+            },
+            {
+                category: "Snowpipe",
+                question: "Snowpipe with AUTO_INGEST enabled isn't loading files. What's the FIRST thing to check?",
+                answer: "<p><span class='highlight'>S3 event notification configuration</span></p><p><strong>Common issue:</strong> Event notification not set up or pointing to wrong SQS queue</p><p><strong>Diagnostic steps:</strong></p><ol><li>Check S3 bucket → Properties → Event notifications</li><li>Verify it's sending to Snowpipe's notification_channel (SQS)</li><li>Check CloudWatch for SQS message delivery</li><li>Then check COPY_HISTORY() for load errors</li></ol>"
+            },
+            {
+                category: "Snowpipe",
+                question: "How do you manually trigger Snowpipe to load specific files?",
+                answer: "<p><span class='highlight'>Snowpipe REST API - insertFiles endpoint</span></p><div class='code-example'>POST /v1/data/pipes/{pipe_name}/insertFiles<br><br>{<br>  \"files\": [<br>    { \"path\": \"stage/file1.csv\" },<br>    { \"path\": \"stage/file2.csv\" }<br>  ]<br>}</div><p>⚠️ NOT SYSTEM$PIPE_FORCE_RESUME (doesn't exist!)</p><p>Use with authentication header (JWT token)</p>"
+            },
+            {
+                category: "Snowpipe",
+                question: "What function shows Snowpipe execution history and costs?",
+                answer: "<p><span class='highlight'>PIPE_USAGE_HISTORY()</span></p><div class='code-example'>SELECT *<br>FROM TABLE(INFORMATION_SCHEMA<br>  .PIPE_USAGE_HISTORY(<br>    PIPE_NAME => 'MY_PIPE',<br>    DATE_RANGE_START => <br>      DATEADD(hours, -24, <br>              CURRENT_TIMESTAMP())<br>));</div><p>Shows: credits used, files loaded, bytes processed, errors</p><p>Also useful: SYSTEM$PIPE_STATUS('pipe_name')</p>"
+            },
+            {
+                category: "Snowpipe",
+                question: "What is Snowpipe's metadata expiration period for duplicate prevention?",
+                answer: "<p><span class='highlight'>64 days</span></p><p><strong>What this means:</strong></p><ul><li>Snowpipe tracks loaded files for 64 days</li><li>Won't reload same file within this period</li><li>After 64 days, metadata expires</li><li>Use LOAD_UNCERTAIN_FILES = TRUE for files > 64 days old</li></ul><p>This prevents accidental duplicates!</p>"
+            },
+            
+            // STREAMS
+            {
+                category: "Streams",
+                question: "A stream shows METADATA$ACTION='DELETE' and METADATA$ISUPDATE=TRUE. What happened?",
+                answer: "<p><span class='highlight'>The BEFORE image of an UPDATE operation</span></p><p><strong>UPDATE generates 2 records:</strong></p><ol><li>DELETE with ISUPDATE=TRUE (old values)</li><li>INSERT with ISUPDATE=TRUE (new values)</li></ol><p>A plain DELETE has ISUPDATE=FALSE</p><div class='code-example'>-- Identify true deletes vs updates<br>SELECT *<br>FROM stream<br>WHERE METADATA$ACTION = 'DELETE'<br>  AND METADATA$ISUPDATE = FALSE;</div>"
+            },
+            {
+                category: "Streams",
+                question: "What function checks if a stream has new data?",
+                answer: "<p><span class='highlight'>SYSTEM$STREAM_HAS_DATA('stream_name')</span></p><p>Returns TRUE or FALSE</p><div class='code-example'>-- Use in task condition<br>CREATE TASK process_changes<br>  WAREHOUSE = my_wh<br>  SCHEDULE = '5 MINUTE'<br>  WHEN SYSTEM$STREAM_HAS_DATA(<br>    'my_stream')<br>  AS<br>  INSERT INTO target<br>  SELECT * FROM my_stream;</div><p>Prevents unnecessary task runs!</p>"
+            },
+            {
+                category: "Streams",
+                question: "What are the three types of streams?",
+                answer: "<p><strong>1. Standard Stream (default)</strong></p><ul><li>Captures INSERT, UPDATE, DELETE</li><li>Shows before/after for updates</li></ul><p><strong>2. Append-Only Stream</strong></p><ul><li>Only captures INSERTs</li><li>Better performance</li><li>Use when: Only adding rows</li></ul><p><strong>3. Insert-Only Stream</strong></p><ul><li>Similar to append-only</li><li>For specific use cases</li></ul><div class='code-example'>CREATE STREAM s1 ON TABLE t1; -- Standard<br>CREATE STREAM s2 ON TABLE t2<br>  APPEND_ONLY = TRUE;</div>"
+            },
+            {
+                category: "Streams",
+                question: "Can you create a stream on a view?",
+                answer: "<p><span class='highlight'>Yes, but with limitations!</span></p><p><strong>Requirements:</strong></p><ul><li>Must be a <strong>standard view</strong> (not materialized)</li><li>View cannot contain:</li><ul><li>Aggregations (GROUP BY, DISTINCT)</li><li>JOINs to other tables</li><li>Window functions</li></ul></ul><div class='code-example'>CREATE VIEW simple_view AS<br>SELECT * FROM table<br>WHERE status = 'active';<br><br>CREATE STREAM stream_on_view<br>  ON VIEW simple_view;</div>"
+            },
+            {
+                category: "Streams",
+                question: "What happens to a stream's data after you consume it?",
+                answer: "<p><span class='highlight'>Stream offset advances - data is 'consumed'</span></p><p><strong>Important concepts:</strong></p><ul><li>Reading doesn't consume (SELECT from stream)</li><li>DML operations consume (INSERT, UPDATE, DELETE, MERGE using stream)</li><li>Once consumed, those changes disappear from stream</li><li>New changes after consumption appear</li></ul><p>Think of it like a queue that tracks table changes!</p>"
+            },
+            
+            // TASKS
+            {
+                category: "Tasks",
+                question: "A task times out after 60 minutes. What parameter increases this?",
+                answer: "<p><span class='highlight'>USER_TASK_TIMEOUT_MS</span></p><p>Default: 3,600,000 ms (60 minutes)</p><div class='code-example'>-- Set at account level<br>ALTER ACCOUNT SET<br>  USER_TASK_TIMEOUT_MS = 7200000;<br>  -- 2 hours<br><br>-- Or per task<br>ALTER TASK my_task SET<br>  USER_TASK_TIMEOUT_MS = 10800000;<br>  -- 3 hours</div><p>Max: 86,400,000 ms (24 hours)</p>"
+            },
+            {
+                category: "Tasks",
+                question: "In a task chain A→B→C, if task B fails, what happens to task C?",
+                answer: "<p><span class='highlight'>Task C is SKIPPED</span></p><p><strong>Task dependency rules:</strong></p><ul><li>Child task only runs if parent succeeds</li><li>If parent fails/skips, child is skipped</li><li>If parent times out, child is skipped</li><li>No automatic retry by default</li></ul><div class='code-example'>-- Enable retries<br>ALTER TASK my_task SET<br>  TASK_AUTO_RETRY_ATTEMPTS = 3;</div>"
+            },
+            {
+                category: "Tasks",
+                question: "How do you create a task that runs only when a stream has data?",
+                answer: "<p><span class='highlight'>Use WHEN clause with SYSTEM$STREAM_HAS_DATA()</span></p><div class='code-example'>CREATE TASK process_stream<br>  WAREHOUSE = compute_wh<br>  SCHEDULE = '5 MINUTE'<br>  WHEN SYSTEM$STREAM_HAS_DATA(<br>    'my_stream')<br>  AS<br>  MERGE INTO target t<br>  USING my_stream s<br>  ON t.id = s.id<br>  WHEN MATCHED THEN UPDATE<br>  WHEN NOT MATCHED THEN INSERT;</div><p>Saves compute costs!</p>"
+            },
+            {
+                category: "Tasks",
+                question: "What's the difference between SCHEDULE and AFTER in task creation?",
+                answer: "<p><strong>SCHEDULE (time-based):</strong></p><div class='code-example'>CREATE TASK t1<br>  SCHEDULE = '5 MINUTE'<br>  -- or --<br>  SCHEDULE = 'USING CRON 0 2 * * * America/Los_Angeles'</div><p><strong>AFTER (dependency-based):</strong></p><div class='code-example'>CREATE TASK t2<br>  AFTER t1  -- Runs after t1 completes<br>  AS ...</div><p>Can't use both! Choose one.</p>"
+            },
+            {
+                category: "Tasks",
+                question: "How do you monitor task execution history?",
+                answer: "<p><span class='highlight'>TASK_HISTORY() function</span></p><div class='code-example'>SELECT<br>  name,<br>  state,<br>  scheduled_time,<br>  completed_time,<br>  error_code,<br>  error_message<br>FROM TABLE(<br>  INFORMATION_SCHEMA.TASK_HISTORY(<br>    TASK_NAME => 'MY_TASK',<br>    SCHEDULED_TIME_RANGE_START =><br>      DATEADD('hour', -24, <br>              CURRENT_TIMESTAMP())<br>));</div><p>Shows: success, failure, skipped states</p>"
+            },
+            
+            // CONNECTORS
+            {
+                category: "Connectors",
+                question: "Python connector: How do you check if an async query is still running?",
+                answer: "<p><span class='highlight'>cursor.is_still_running()</span></p><div class='code-example'>import snowflake.connector<br><br>cursor.execute_async(<br>  \"SELECT * FROM huge_table\"<br>)<br><br># Poll until complete<br>while cursor.is_still_running():<br>    time.sleep(1)<br><br># Then fetch<br>results = cursor.fetchall()</div><p>⚠️ NOT cursor.fetch_results() or cursor.get_status()</p>"
+            },
+            {
+                category: "Connectors",
+                question: "What write modes does the Spark connector support?",
+                answer: "<p><span class='highlight'>Append, Overwrite, Truncate</span></p><div class='code-example'>df.write \\<br>  .format(\"snowflake\") \\<br>  .options(**sfOptions) \\<br>  .option(\"dbtable\", \"target\") \\<br>  .mode(\"overwrite\")  # Options:<br>  # \"append\"   - Add rows<br>  # \"overwrite\" - Replace all<br>  # \"truncate\"  - DELETE then INSERT<br>  .save()</div><p>NOT just \"append\" - know all three!</p>"
+            },
+            {
+                category: "Connectors",
+                question: "What does the Kafka connector automatically create?",
+                answer: "<p><span class='highlight'>A table for EACH Kafka topic</span></p><p><strong>Also creates:</strong></p><ul><li>Internal stage for buffering</li><li>Snowpipe for loading</li></ul><p>You DON'T need to pre-create tables!</p><div class='code-example'>// Kafka config<br>\"topics\": \"orders,customers\",<br>\"snowflake.topic2table.map\":<br>  \"orders:ORDERS_TABLE,<br>   customers:CUSTOMERS_TABLE\"</div><p>Connector handles schema mapping automatically</p>"
+            },
+            {
+                category: "Connectors",
+                question: "Which connector provides the BEST performance for bulk data transfers?",
+                answer: "<p><span class='highlight'>Spark connector</span></p><p><strong>Why Spark wins:</strong></p><ul><li>Distributed parallel processing</li><li>Optimized internal staging</li><li>Pushdown query optimization</li><li>Designed for big data</li></ul><p><strong>Performance ranking:</strong></p><ol><li>🥇 Spark (best for bulk)</li><li>🥈 Python (good with Pandas)</li><li>🥉 JDBC/ODBC (general purpose)</li></ol>"
+            },
+            {
+                category: "Connectors",
+                question: "How do you call an external REST API from Snowflake SQL?",
+                answer: "<p><span class='highlight'>External Functions with API Gateway/Azure Functions</span></p><div class='code-example'>-- Step 1: Create API Integration<br>CREATE API INTEGRATION my_api<br>  API_PROVIDER = aws_api_gateway<br>  API_AWS_ROLE_ARN = 'arn:...'<br>  ENABLED = TRUE;<br><br>-- Step 2: Create External Function<br>CREATE EXTERNAL FUNCTION<br>  geocode(address VARCHAR)<br>RETURNS VARIANT<br>API_INTEGRATION = my_api<br>AS 'https://api-gateway-url';<br><br>-- Step 3: Use in SQL<br>SELECT geocode(address)<br>FROM customers;</div><p>⚠️ Python UDFs CAN'T make HTTP calls!</p>"
+            },
+            
+            // EXTERNAL & ICEBERG TABLES
+            {
+                category: "External Tables",
+                question: "What are the key limitations of External Tables?",
+                answer: "<p><span class='highlight'>No DML operations & No Time Travel</span></p><p><strong>Limitations:</strong></p><ul><li>❌ Can't INSERT, UPDATE, DELETE, MERGE</li><li>❌ No Time Travel</li><li>❌ No clustering keys</li><li>❌ Slower query performance than native tables</li></ul><p><strong>Can do:</strong></p><ul><li>✅ SELECT queries</li><li>✅ Query across multiple files</li><li>✅ Metadata columns</li></ul>"
+            },
+            {
+                category: "External Tables",
+                question: "When should you use Iceberg tables instead of External tables?",
+                answer: "<p><span class='highlight'>When you need ACID transactions and schema evolution</span></p><p><strong>Use Iceberg when:</strong></p><ul><li>Need INSERT, UPDATE, DELETE, MERGE</li><li>Want Time Travel</li><li>Schema changes frequently</li><li>Interoperability with Spark/Trino/etc.</li></ul><p><strong>Use External when:</strong></p><ul><li>Read-only access needed</li><li>Simple CSV/JSON/Parquet files</li><li>No schema evolution required</li></ul>"
+            },
+            {
+                category: "External Tables",
+                question: "In an External table, what metadata column shows the source filename?",
+                answer: "<p><span class='highlight'>METADATA$FILENAME</span></p><div class='code-example'>SELECT<br>  METADATA$FILENAME,<br>  METADATA$FILE_ROW_NUMBER,<br>  col1,<br>  col2<br>FROM external_table<br>WHERE METADATA$FILENAME<br>  LIKE '%2024-12%';</div><p><strong>Available metadata:</strong></p><ul><li>METADATA$FILENAME - File path</li><li>METADATA$FILE_ROW_NUMBER - Row # in file</li></ul>"
+            },
+            {
+                category: "External Tables",
+                question: "For Snowflake-managed Iceberg tables, what operations are supported?",
+                answer: "<p><span class='highlight'>All DML: SELECT, INSERT, UPDATE, DELETE, MERGE</span></p><p><strong>Snowflake-managed Iceberg:</strong></p><ul><li>✅ Full DML support</li><li>✅ Time Travel</li><li>✅ Schema evolution</li><li>✅ ACID transactions</li></ul><div class='code-example'>CREATE ICEBERG TABLE products<br>  CATALOG = 'SNOWFLAKE'<br>  EXTERNAL_VOLUME = 'my_volume'<br>  STORAGE_FORMAT = 'ICEBERG'<br>AS SELECT * FROM source;</div><p>Externally-managed Iceberg = read-only</p>"
+            },
+            {
+                category: "External Tables",
+                question: "With AUTO_REFRESH = TRUE on an External table, when does metadata refresh?",
+                answer: "<p><span class='highlight'>When new files are detected via event notification</span></p><p><strong>How it works:</strong></p><ol><li>S3/Azure/GCS sends event notification</li><li>Snowflake receives event</li><li>Metadata automatically refreshes</li><li>New files immediately queryable</li></ol><div class='code-example'>CREATE EXTERNAL TABLE my_ext_tbl<br>  WITH LOCATION = @my_stage<br>  AUTO_REFRESH = TRUE<br>  FILE_FORMAT = (TYPE = 'PARQUET');</div><p>Without AUTO_REFRESH, must manually refresh</p>"
+            },
+            
+            // DATA UNLOADING
+            {
+                category: "Loading",
+                question: "Unloading 500 GB to S3 - what setting gives BEST performance?",
+                answer: "<p><span class='highlight'>SINGLE = FALSE with MAX_FILE_SIZE</span></p><div class='code-example'>COPY INTO @my_stage/export/<br>FROM large_table<br>SINGLE = FALSE<br>MAX_FILE_SIZE = 4900000000<br>FILE_FORMAT = (TYPE='PARQUET'<br>  COMPRESSION='SNAPPY');</div><p><strong>Why?</strong></p><ul><li>SINGLE=FALSE: Parallel unload (fast!)</li><li>SINGLE=TRUE: One huge file (slow)</li><li>MAX_FILE_SIZE: Control file size</li></ul>"
+            },
+            {
+                category: "Loading",
+                question: "What does PARTITION BY do when unloading data?",
+                answer: "<p><span class='highlight'>Creates separate directories for each partition value</span></p><div class='code-example'>COPY INTO @stage/sales/<br>FROM sales_table<br>PARTITION BY (<br>  DATE_TRUNC('MONTH', sale_date)<br>)<br>FILE_FORMAT = (TYPE='PARQUET');</div><p><strong>Result structure:</strong></p><div class='code-example'>sales/<br>  2024-01/<br>    file1.parquet<br>    file2.parquet<br>  2024-02/<br>    file1.parquet</div><p>Great for data lake organization!</p>"
+            },
+            
+            // TROUBLESHOOTING
+            {
+                category: "Loading",
+                question: "COPY INTO fails: 'Number of columns in file does not match table.' What's the cause?",
+                answer: "<p><span class='highlight'>File has more/fewer columns than target table</span></p><p><strong>Common causes:</strong></p><ul><li>CSV header doesn't match table</li><li>Missing or extra columns in source</li><li>Incorrect SKIP_HEADER setting</li></ul><p><strong>Solutions:</strong></p><div class='code-example'>-- Use validation first<br>COPY INTO table<br>FROM @stage<br>VALIDATION_MODE='RETURN_ERRORS';<br><br>-- Or specify column subset<br>COPY INTO table (col1, col2)<br>FROM (SELECT $1, $2 FROM @stage);</div>"
+            },
+            {
+                category: "Loading",
+                question: "How do you see detailed error messages after a failed COPY INTO?",
+                answer: "<p><span class='highlight'>VALIDATE() function with JOB_ID => '_last'</span></p><div class='code-example'>-- Run after failed COPY<br>SELECT *<br>FROM TABLE(<br>  VALIDATE(<br>    table_name,<br>    JOB_ID => '_last'<br>  )<br>);</div><p><strong>Also useful:</strong></p><div class='code-example'>-- Historical loads<br>SELECT *<br>FROM TABLE(<br>  INFORMATION_SCHEMA.COPY_HISTORY(<br>    TABLE_NAME => 'MY_TABLE',<br>    START_TIME => DATEADD('hour',-24,<br>                  CURRENT_TIMESTAMP())<br>));</div>"
+            },
+            {
+                category: "Streams",
+                question: "Your Stream → Task → Target pipeline stopped processing. What to check FIRST?",
+                answer: "<p><span class='highlight'>Whether the task is SUSPENDED</span></p><div class='code-example'>-- Check task state<br>SHOW TASKS LIKE 'my_task';<br><br>-- Resume if suspended<br>ALTER TASK my_task RESUME;<br><br>-- Check last run<br>SELECT *<br>FROM TABLE(<br>  INFORMATION_SCHEMA.TASK_HISTORY(<br>    TASK_NAME => 'MY_TASK',<br>    SCHEDULED_TIME_RANGE_START =><br>      DATEADD('hour',-24,<br>              CURRENT_TIMESTAMP())<br>));</div><p>Tasks are created SUSPENDED by default!</p>"
+            },
+            
+            // ADVANCED CONCEPTS
+            {
+                category: "Loading",
+                question: "What's the difference between TRUNCATECOLUMNS and ERROR_ON_COLUMN_COUNT_MISMATCH?",
+                answer: "<p><strong>TRUNCATECOLUMNS:</strong></p><ul><li>Truncates strings longer than column width</li><li>Example: 'HelloWorld' → 'Hello' if VARCHAR(5)</li></ul><p><strong>ERROR_ON_COLUMN_COUNT_MISMATCH:</strong></p><ul><li>Controls behavior when # of columns differs</li><li>TRUE: Error on mismatch</li><li>FALSE: Load anyway (extra columns ignored)</li></ul><div class='code-example'>FILE_FORMAT = (<br>  TRUNCATECOLUMNS = TRUE,<br>  ERROR_ON_COLUMN_COUNT_MISMATCH = FALSE<br>);</div>"
+            },
+            {
+                category: "Snowpipe",
+                question: "How does Snowpipe differ from a scheduled COPY task?",
+                answer: "<table style='width:100%;margin-top:10px;color:white;'><tr><th>Feature</th><th>Snowpipe</th><th>Scheduled COPY</th></tr><tr><td>Trigger</td><td>Event-driven (files arrive)</td><td>Time-based (schedule)</td></tr><tr><td>Compute</td><td>Snowflake-managed</td><td>User warehouse</td></tr><tr><td>Latency</td><td>1-2 minutes</td><td>Depends on schedule</td></tr><tr><td>Cost</td><td>Per-file compute</td><td>Warehouse credits</td></tr><tr><td>Use Case</td><td>Continuous micro-batches</td><td>Scheduled bulk loads</td></tr></table>"
+            },
+            {
+                category: "Tasks",
+                question: "What's a Serverless Task and when should you use it?",
+                answer: "<p><span class='highlight'>Task that uses Snowflake-managed compute (no warehouse needed)</span></p><div class='code-example'>CREATE TASK serverless_task<br>  USER_TASK_MANAGED_INITIAL_WAREHOUSE_SIZE = 'XSMALL'<br>  SCHEDULE = '5 MINUTE'<br>  AS<br>  INSERT INTO target<br>  SELECT * FROM source;</div><p><strong>Benefits:</strong></p><ul><li>No warehouse management</li><li>Automatic scaling</li><li>Pay-per-second billing</li></ul><p><strong>Use when:</strong> Simple, infrequent tasks</p>"
+            },
+            {
+                category: "Streams",
+                question: "What happens to a stream when you drop and recreate the source table?",
+                answer: "<p><span class='highlight'>Stream becomes stale and unusable</span></p><p><strong>Why?</strong> Stream stores offset to source table's transaction log</p><p><strong>Solution:</strong></p><ol><li>Drop the stream</li><li>Recreate the stream on new table</li></ol><div class='code-example'>-- This breaks the stream<br>DROP TABLE source_table;<br>CREATE TABLE source_table ...;<br><br>-- Must recreate stream<br>DROP STREAM my_stream;<br>CREATE STREAM my_stream<br>  ON TABLE source_table;</div>"
+            },
+            {
+                category: "Connectors",
+                question: "What's the Python connector's fetch_pandas_all() method?",
+                answer: "<p><span class='highlight'>Returns query results as a Pandas DataFrame</span></p><div class='code-example'>import snowflake.connector<br>import pandas as pd<br><br>cursor.execute(<br>  \"SELECT * FROM sales\"<br>)<br><br># Returns Pandas DataFrame<br>df = cursor.fetch_pandas_all()<br><br># Now use Pandas methods<br>df.describe()<br>df.groupby('region').sum()</div><p>Much faster than fetchall() for data science!</p>"
+            },
+            {
+                category: "Loading",
+                question: "What's the SIZE_LIMIT parameter in COPY INTO?",
+                answer: "<p><span class='highlight'>Limits number of bytes loaded per file</span></p><div class='code-example'>COPY INTO table<br>FROM @stage<br>SIZE_LIMIT = 10000000  -- 10 MB<br>FILE_FORMAT = csv_format;</div><p><strong>Use cases:</strong></p><ul><li>Testing with sample data</li><li>Cost control</li><li>Incremental loading</li></ul><p>⚠️ Stops at limit, doesn't fail</p>"
+            },
+            {
+                category: "File Formats",
+                question: "What does SKIP_BLANK_LINES do in CSV file format?",
+                answer: "<p><span class='highlight'>Skips empty lines in CSV files</span></p><div class='code-example'>CREATE FILE FORMAT csv_clean<br>  TYPE = 'CSV'<br>  SKIP_BLANK_LINES = TRUE<br>  SKIP_HEADER = 1<br>  TRIM_SPACE = TRUE;</div><p>Useful when source CSVs have:</p><ul><li>Empty lines between records</li><li>Trailing blank lines</li><li>Formatting artifacts</li></ul><p>Default: FALSE</p>"
+            },
+            {
+                category: "External Tables",
+                question: "What's a materialized view on an External table used for?",
+                answer: "<p><span class='highlight'>Caching frequently-accessed external data for better performance</span></p><div class='code-example'>CREATE MATERIALIZED VIEW mv_ext<br>AS<br>SELECT<br>  DATE_TRUNC('month', date) mo,<br>  SUM(amount) total<br>FROM external_table<br>GROUP BY 1;</div><p><strong>Benefits:</strong></p><ul><li>Query MV instead of external storage</li><li>Much faster (cached in Snowflake)</li><li>Auto-refreshes on external data changes</li></ul>"
+            },
+            {
+                category: "Snowpipe",
+                question: "Can Snowpipe load data from internal stages?",
+                answer: "<p><span class='highlight'>Yes! But AUTO_INGEST only works with external stages</span></p><p><strong>Internal stages:</strong></p><ul><li>✅ Manual triggering via REST API</li><li>❌ No AUTO_INGEST (no event notifications)</li></ul><p><strong>External stages:</strong></p><ul><li>✅ AUTO_INGEST with event notifications</li><li>✅ REST API triggering</li></ul><div class='code-example'>-- Internal stage pipe (manual only)<br>CREATE PIPE my_pipe AS<br>COPY INTO table<br>FROM @internal_stage;</div>"
+            },
+            {
+                category: "Tasks",
+                question: "What's the maximum task tree depth?",
+                answer: "<p><span class='highlight'>1000 tasks in a single tree</span></p><p>But practical limits:</p><ul><li>Max predecessor tasks per task: 100</li><li>Max tasks in SUSPENDED state: Unlimited</li><li>Max tasks in STARTED state: Limited by warehouse</li></ul><p>Best practice: Keep trees simple and manageable</p><div class='code-example'>-- Root task<br>CREATE TASK root SCHEDULE='1 hour'...<br><br>-- Children (up to 100 can depend on one)<br>CREATE TASK child1 AFTER root...<br>CREATE TASK child2 AFTER root...</div>"
+            },
+            {
+                category: "Streams",
+                question: "What's the difference between a table stream and a view stream?",
+                answer: "<p><strong>Table Stream:</strong></p><ul><li>Tracks changes on a table</li><li>Captures INSERT, UPDATE, DELETE</li><li>Standard CDC pattern</li></ul><p><strong>View Stream:</strong></p><ul><li>Tracks changes on underlying tables</li><li>View must be simple (no JOINs, aggregations)</li><li>Less common</li></ul><div class='code-example'>-- Table stream<br>CREATE STREAM s1 ON TABLE t1;<br><br>-- View stream<br>CREATE STREAM s2 ON VIEW v1;</div>"
+            },
+            {
+                category: "Connectors",
+                question: "What authentication methods does the Python connector support?",
+                answer: "<p><strong>Supported methods:</strong></p><ul><li>Username/password</li><li>Key-pair authentication</li><li>SSO (external browser)</li><li>OAuth</li></ul><div class='code-example'># Key-pair auth<br>conn = snowflake.connector.connect(<br>  user='user',<br>  account='account',<br>  private_key=private_key,<br>  warehouse='wh',<br>  database='db'<br>)<br><br># SSO<br>conn = snowflake.connector.connect(<br>  authenticator='externalbrowser',<br>  account='account'<br>)</div>"
+            },
+            {
+                category: "Loading",
+                question: "What's the MATCH_BY_COLUMN_NAME option in COPY INTO?",
+                answer: "<p><span class='highlight'>Loads data by matching column names (not position)</span></p><div class='code-example'>COPY INTO customers<br>FROM @stage<br>MATCH_BY_COLUMN_NAME = 'CASE_INSENSITIVE'<br>FILE_FORMAT = (TYPE = 'PARQUET');</div><p><strong>Options:</strong></p><ul><li>CASE_SENSITIVE: Exact name match</li><li>CASE_INSENSITIVE: Ignore case</li><li>NONE: Position-based (default)</li></ul><p>Great for Parquet with embedded schema!</p>"
+            },
+            {
+                category: "File Formats",
+                question: "How do you handle different date formats in CSV files?",
+                answer: "<p><span class='highlight'>Use DATE_FORMAT in file format definition</span></p><div class='code-example'>CREATE FILE FORMAT date_csv<br>  TYPE = 'CSV'<br>  DATE_FORMAT = 'MM/DD/YYYY'<br>  TIMESTAMP_FORMAT = <br>    'YYYY-MM-DD HH24:MI:SS';<br><br>-- Then use in COPY<br>COPY INTO events<br>FROM @stage<br>FILE_FORMAT = date_csv;</div><p>Common formats: YYYY-MM-DD, MM/DD/YYYY, DD-MON-YYYY</p>"
+            },
+            {
+                category: "Snowpipe",
+                question: "What's the relationship between Snowpipe and credit usage?",
+                answer: "<p><span class='highlight'>Snowpipe uses Snowflake-managed compute (billed separately)</span></p><p><strong>Cost model:</strong></p><ul><li>0.06 credits per 1000 files loaded</li><li>Plus data processing compute</li><li>No warehouse needed</li><li>Shown in PIPE_USAGE_HISTORY()</li></ul><div class='code-example'>-- Check Snowpipe costs<br>SELECT<br>  SUM(credits_used) credits<br>FROM TABLE(<br>  PIPE_USAGE_HISTORY(<br>    DATE_RANGE_START => ...<br>));</div>"
+            },
+            {
+                category: "Tasks",
+                question: "Can a task run without a warehouse?",
+                answer: "<p><span class='highlight'>Yes, with Serverless Tasks</span></p><div class='code-example'>-- Traditional (needs warehouse)<br>CREATE TASK t1<br>  WAREHOUSE = compute_wh<br>  SCHEDULE = '1 HOUR'<br>  AS ...<br><br>-- Serverless (no warehouse)<br>CREATE TASK t2<br>  USER_TASK_MANAGED_INITIAL_<br>  WAREHOUSE_SIZE = 'XSMALL'<br>  SCHEDULE = '1 HOUR'<br>  AS ...</div><p>Serverless tasks use Snowflake-managed compute</p>"
+            },
+            {
+                category: "Connectors",
+                question: "How does the Spark connector optimize query performance?",
+                answer: "<p><span class='highlight'>Pushdown optimization - runs filters in Snowflake</span></p><div class='code-example'>val df = spark.read<br>  .format(\"snowflake\")<br>  .option(\"dbtable\", \"sales\")<br>  .load()<br>  .filter($\"region\" === \"West\")<br>  .filter($\"amount\" > 1000)</div><p><strong>What happens:</strong></p><ol><li>Spark sends filter predicates to Snowflake</li><li>Snowflake filters data before transfer</li><li>Only matching rows sent to Spark</li></ol><p>Much faster than filtering in Spark!</p>"
+            },
+            {
+                category: "External Tables",
+                question: "What's the REFRESH_ON_CREATE option for External tables?",
+                answer: "<p><span class='highlight'>Controls if metadata is refreshed during table creation</span></p><div class='code-example'>CREATE EXTERNAL TABLE ext_tbl<br>  WITH LOCATION = @my_stage<br>  REFRESH_ON_CREATE = FALSE<br>  AUTO_REFRESH = TRUE<br>  FILE_FORMAT = (TYPE='PARQUET');</div><p><strong>Options:</strong></p><ul><li>TRUE (default): Scan files during CREATE (slow for many files)</li><li>FALSE: Skip initial scan (faster, refresh later)</li></ul>"
+            },
+            {
+                category: "Loading",
+                question: "What's the ENFORCE_LENGTH option in COPY INTO?",
+                answer: "<p><span class='highlight'>Enforces VARCHAR length limits during load</span></p><div class='code-example'>COPY INTO customers<br>FROM @stage<br>FILE_FORMAT = csv_format<br>ENFORCE_LENGTH = TRUE;</div><p><strong>Behavior:</strong></p><ul><li>TRUE: Error if string exceeds column length</li><li>FALSE: Truncate to fit</li></ul><p>Similar to TRUNCATECOLUMNS but more explicit</p>"
+            }
+        ];
+
+        let currentIndex = 0;
+        let isFlipped = false;
+        let reviewedCards = new Set();
+        let filteredCards = [...flashcards];
+        let currentFilter = 'all';
+
+        function updateCard() {
+            const card = filteredCards[currentIndex];
+            document.getElementById('category-front').textContent = card.category;
+            document.getElementById('category-back').textContent = card.category;
+            document.getElementById('front-content').innerHTML = `<h2>${card.question}</h2>`;
+            document.getElementById('back-content').innerHTML = `<h3>Answer</h3>${card.answer}`;
+            
+            document.getElementById('current-card').textContent = currentIndex + 1;
+            document.getElementById('total-cards').textContent = filteredCards.length;
+            
+            const progress = ((currentIndex + 1) / filteredCards.length) * 100;
+            document.getElementById('progress-fill').style.width = progress + '%';
+            
+            reviewedCards.add(currentIndex);
+            updateStats();
+            
+            // Reset flip state
+            if (isFlipped) {
+                flipCard();
+            }
+        }
+
+        function flipCard() {
+            const card = document.getElementById('flashcard');
+            card.classList.toggle('flipped');
+            isFlipped = !isFlipped;
+        }
+
+        function nextCard() {
+            if (currentIndex < filteredCards.length - 1) {
+                currentIndex++;
+                updateCard();
+            }
+        }
+
+        function previousCard() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                updateCard();
+            }
+        }
+
+        function shuffleCards() {
+            filteredCards.sort(() => Math.random() - 0.5);
+            currentIndex = 0;
+            reviewedCards.clear();
+            updateCard();
+        }
+
+        function filterCategory(category) {
+            currentFilter = category;
+            
+            // Update button styles
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Filter cards
+            if (category === 'all') {
+                filteredCards = [...flashcards];
+            } else {
+                filteredCards = flashcards.filter(card => card.category === category);
+            }
+            
+            currentIndex = 0;
+            reviewedCards.clear();
+            updateCard();
+        }
+
+        function updateStats() {
+            document.getElementById('cards-reviewed').textContent = reviewedCards.size;
+            document.getElementById('cards-remaining').textContent = filteredCards.length - reviewedCards.size;
+            const completion = Math.round((reviewedCards.size / filteredCards.length) * 100);
+            document.getElementById('completion').textContent = completion + '%';
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') nextCard();
+            if (e.key === 'ArrowLeft') previousCard();
+            if (e.key === ' ' || e.key === 'Enter') {
+                e.preventDefault();
+                flipCard();
+            }
+        });
+
+        // Initialize
+        updateCard();
+    </script>
+</body>
+</html>
